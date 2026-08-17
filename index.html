@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trinchera | Producción Musical</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            background-color: #050505;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", Arial, sans-serif;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Capa de destello de arcoíris y fuegos artificiales de inicio */
+        #intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            background: radial-gradient(circle, rgba(255,0,128,0.3) 0%, rgba(0,242,255,0.2) 50%, rgba(5,5,5,1) 90%);
+            mix-blend-mode: screen;
+            animation: rainbowFlash 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rainbowFlash {
+            0% {
+                opacity: 1;
+                filter: hue-rotate(0deg) brightness(2.5);
+                transform: scale(1.1);
+            }
+            50% {
+                filter: hue-rotate(180deg) brightness(1.8);
+            }
+            100% {
+                opacity: 0;
+                filter: hue-rotate(360deg) brightness(1);
+                transform: scale(1);
+            }
+        }
+
+        /* Botón fijo en la esquina superior */
+        .top-corner-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(24, 119, 242, 0.15);
+            border: 1px solid rgba(24, 119, 242, 0.4);
+            border-radius: 30px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 12px rgba(24, 119, 242, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .top-corner-btn:hover {
+            background: rgba(24, 119, 242, 0.3);
+            border-color: #1877f2;
+            box-shadow: 0 0 18px rgba(24, 119, 242, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .top-corner-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #1877f2;
+        }
+
+        .page-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 90px 20px 60px 20px;
+            box-sizing: border-box;
+        }
+
+        .content-top {
+            width: 90%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.95);
+            animation: revealContent 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+            margin-bottom: 35px;
+        }
+
+        @keyframes revealContent {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        @keyframes shine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .text-container { animation: float 4s ease-in-out infinite; }
+
+        .hola { font-size: 1.1rem; margin-bottom: 6px; opacity: 0.75; }
+        .bienvenidos { font-size: 2.8rem; font-weight: 800; margin-bottom: 0; letter-spacing: 1px; }
+        .a-min { font-size: 1.3rem; margin-bottom: 15px; display: block; }
+
+        .trinchera-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.9rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background-color: #c819a5;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: blink 2s infinite;
+        }
+
+        .mi-trinchera-text {
+            background: linear-gradient(90deg, #ffffff 40%, #a0a0a0 50%, #e0e0e0 60%, #ffffff 70%);
+            background-size: 200% auto;
+            color: #ffffff;
+            background-clip: text;
+            -webkit-background-clip: text;
+            animation: shine 8s linear infinite;
+            white-space: nowrap;
+        }
+
+        .main-desc { font-size: 1.15rem; opacity: 0.95; margin-bottom: 6px; }
+        .sub-desc { font-size: 1rem; opacity: 0.7; margin-bottom: 25px; }
+
+        .btn-cotizar {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 26px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ffffff;
+            background: transparent;
+            border: 2px solid #00f2ff;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 14px rgba(0, 242, 255, 0.35);
+            text-transform: uppercase;
+        }
+
+        .btn-cotizar:hover {
+            background: #00f2ff;
+            color: #000;
+            box-shadow: 0 0 24px #00f2ff;
+        }
+
+        .btn-cotizar svg { width: 20px; height: 20px; fill: currentColor; }
+
+        /* Barrera / División estilizada */
+        .divider {
+            width: 85%;
+            max-width: 420px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00f2ff, #ff00ff, transparent);
+            margin: 10px 0 35px 0;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        /* Sección de Descripción Inferior (Sin cuadro, limpia) */
+        .bio-section {
+            width: 90%;
+            max-width: 480px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: revealBio 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
+            margin-bottom: 40px;
+        }
+
+        @keyframes revealBio {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bio-text {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #e0e0e0;
+            margin: 0;
+            white-space: pre-line;
+        }
+
+        .liu-rauli-wrapper {
+            display: inline-block;
+            position: relative;
+            animation: floatSides 6s ease-in-out infinite;
+        }
+
+        @keyframes floatSides {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(8px);
+            }
+        }
+
+        .liu-rauli-text {
+            color: #00f2ff;
+            font-weight: bold;
+            position: relative;
+            display: inline-block;
+        }
+
+        .liu-rauli-text.glitch-gold-active {
+            animation: goldGlitchAnim 1.2s ease forwards;
+        }
+
+        @keyframes goldGlitchAnim {
+            0% {
+                color: #00f2ff;
+                text-shadow: none;
+                transform: translate(0, 0);
+            }
+            15% {
+                color: #ffd700;
+                text-shadow: 2px 0 #ff0055, -2px 0 #00ffff, 0 0 12px #ffaa00;
+                transform: translate(-3px, 2px);
+            }
+            30% {
+                color: #ffaa00;
+                text-shadow: -3px -1px #00ffcc, 3px 1px #ff00ff, 0 0 15px #ffd700;
+                transform: translate(3px, -2px);
+            }
+            45% {
+                color: #ffffff;
+                text-shadow: 2px 2px #ffcc00, -2px -2px #00f2ff;
+                transform: translate(-1px, -1px);
+            }
+            60% {
+                color: #ffd700;
+                text-shadow: -2px 0 #ff0055, 2px 0 #00ffff, 0 0 10px #ffd700;
+                transform: translate(2px, 1px);
+            }
+            80% {
+                color: #ffcc00;
+                text-shadow: 1px -1px #ff00ff;
+                transform: translate(-1px, 0);
+            }
+            100% {
+                color: #00f2ff;
+                text-shadow: none;
+                transform: translate(0, 0);
+            }
+        }
+
+        .gold-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #ffaa00, 0 0 15px #ffd700;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 5;
+            animation: burstGold 1s ease-out forwards;
+        }
+
+        @keyframes burstGold {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(0.2);
+                opacity: 0;
+            }
+        }
+
+        /* SECCIÓN DE GALERÍA CON EFECTO COLLAGE FLOTANTE */
+        .gallery-section {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .gallery-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, #00f2ff, #ff00ff, #ffd700);
+            background-size: 200% auto;
+            color: #ffffff;
+            background-clip: text;
+            -webkit-background-clip: text;
+            animation: shine 6s linear infinite;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+        }
+
+        .gallery-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .gallery-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            width: 100%;
+            max-width: 750px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .gallery-item.reverse {
+            flex-direction: row-reverse;
+        }
+
+        .gallery-img-container {
+            position: relative;
+            width: 50%;
+            max-width: 340px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 242, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 242, 255, 0.2);
+            transition: all 0.4s ease;
+            animation: floatGalleryCard 5s ease-in-out infinite;
+            background: #111;
+        }
+
+        .gallery-item.reverse .gallery-img-container {
+            animation-delay: 2.5s;
+        }
+
+        .gallery-img-container:hover {
+            transform: scale(1.03) translateY(-5px);
+            border-color: #ff00ff;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(255, 0, 255, 0.4);
+        }
+
+        @keyframes floatGalleryCard {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+
+        .gallery-img-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-img-container:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-caption-side {
+            width: 45%;
+            max-width: 320px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            backdrop-filter: blur(8px);
+            animation: floatCaption 4s ease-in-out infinite;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .gallery-item.reverse .gallery-caption-side {
+            animation-delay: 2s;
+        }
+
+        @keyframes floatCaption {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .gallery-caption-side h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.15rem;
+            color: #00f2ff;
+            font-weight: 700;
+            white-space: pre-line;
+        }
+
+        .gallery-caption-side p {
+            margin: 0 0 15px 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #cccccc;
+            white-space: pre-line;
+        }
+
+        .cotiza-text {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 768px) {
+            .gallery-item, .gallery-item.reverse {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 15px;
+            }
+            .gallery-img-container, .gallery-caption-side {
+                width: 90%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="intro-overlay"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Botón fijo en la esquina superior izquierda -->
+    <a href="https://facebook.com" class="top-corner-btn" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        MI Trinchera
+    </a>
+
+    <div class="page-container">
+        <!-- Bloque Superior (Bienvenida y Botón Cotizar) -->
+        <div class="content-top">
+            <div class="text-container">
+                <div class="hola">hola,</div>
+                <div class="bienvenidos">BIENVENIDOS</div>
+                <div class="a-min">a</div>
+            </div>
+            
+            <div class="trinchera-container">
+                <div class="dot"></div>
+                <div class="mi-trinchera-text">MI TRINCHERA</div>
+            </div>
+
+            <div class="main-desc">Soy productor musical. Escríbeme.</div>
+            <div class="sub-desc">¿Cómo puedo ayudarte hoy?</div>
+            
+            <a href="https://wa.me/5212261009376?text=Hola,%20me%20gustaría%20cotizar%20un%20servicio" class="btn-cotizar" target="_blank">
+                <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.148-.174.198-.298.297-.496.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.915-2.206-.243-.593-.487-.513-.669-.522-.173-.009-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.326c.006-5.453 4.433-9.881 9.886-9.881 2.64 0 5.123 1.027 6.989 2.893a9.848 9.848 0 012.893 6.994c-.003 5.453-4.431 9.88-9.884 9.88m8.413-18.297A11.815 11.815 0 0012.05 0C5.406 0 .053 5.353.053 12.001c0 1.907.448 3.762 1.299 5.406L0 24l6.633-1.738a11.833 11.833 0 005.416 1.302h.005c6.644 0 11.997-5.353 11.998-12.001 0-3.208-1.246-6.228-3.512-8.5zm0 0"/></svg>
+                Cotizar servicios
+            </a>
+        </div>
+
+        <!-- Barrera / División Estilizada -->
+        <div class="divider"></div>
+
+        <!-- Bloque Inferior (Descripción limpia sin cuadro) -->
+        <div class="bio-section">
+            <div class="bio-text">Hola mi gente,  
+Yo soy <span class="liu-rauli-wrapper"><span id="liuRauliEl" class="liu-rauli-text">Liu Rauli</span></span>
+ 
+Y me desempeño bien como productor musical. 
+Tengo más de 10 años de experiencia operando softwares de este tipo, que se ocupan para la creación de cualquier sonido, llevándome a construir proyectos musicales hasta anuncios comerciales.
+
+Estoy aquí para ofrecer mis servicios en base a mi experiencia, mi objetivo es hacer lo que me gusta 🎙️🎹 estoy aquí listo para ayudarte con tu proyecto.
+
+EXELENTE DÍA ✌🏻
+✨✨💥🚀🚀</div>
+        </div>
+
+        <!-- Barrera / División Estilizada para la Galería -->
+        <div class="divider"></div>
+
+        <!-- SECCIÓN: GALERÍA (Actualizada con las descripciones de los micrófonos) -->
+        <div class="gallery-section">
+            <h2 class="gallery-title">Galería</h2>
+            
+            <div class="gallery-grid">
+                <!-- Elemento 1 de la Galería: 1000125104_2.png (Rode NT1A) -->
+                <div class="gallery-item">
+                    <div class="gallery-img-container">
+                        <img src="1000125104_2.png" alt="Rode NT1A">
+                    </div>
+                    <div class="gallery-caption-side">
+                        <h3>🎙️✨Rode NT1A</h3>
+                        <p>micrófono con buenos colores en los agudos y realce en  los graves, entregando un sonido profesional, excelente para empezar hacer grabaciones profesionales.</p>
+                        <div class="cotiza-text">Cotiza ya</div>
+                    </div>
+                </div>
+
+                <!-- Elemento 2 de la Galería: 1000125102_2.png (Neumann tlm 102) -->
+                <div class="gallery-item reverse">
+                    <div class="gallery-img-container">
+                        <img src="1000125102_2.png" alt="Neumann tlm 102">
+                    </div>
+                    <div class="gallery-caption-side">
+                        <h3>🎙️✨Neumann tlm 102</h3>
+                        <p>Un micrófono altamente preciso 
+Con sonido comercial por su firma de audio única y característica en el mercado actual 
+Y eso es por la entrega de un sonido caro</p>
+                        <div class="cotiza-text">Cotiza ya</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let icons = [];
+        let fireworks = [];
+        const mouse = { x: null, y: null, radius: 150 };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        class Particle {
+            constructor() { this.init(); }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() * 0.8 - 0.4);
+                this.speedY = (Math.random() * 0.8 - 0.4);
+                this.color = Math.random() > 0.5 ? '#00f2ff' : '#ff00ff';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < mouse.radius) {
+                    this.x -= dx * 0.01;
+                    this.y -= dy * 0.01;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class FireworkParticle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                this.speedX = Math.cos(angle) * speed;
+                this.speedY = Math.sin(angle) * speed;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.015;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedY += 0.05;
+                this.alpha -= this.decay;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function launchFireworks() {
+            const colors = ['#00f2ff', '#ff00ff', '#ffcc00', '#ff3366', '#7928ca'];
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const fx = Math.random() * (canvas.width * 0.8) + (canvas.width * 0.1);
+                    const fy = Math.random() * (canvas.height * 0.5) + (canvas.height * 0.1);
+                    const mainColor = colors[Math.floor(Math.random() * colors.length)];
+                    for (let j = 0; j < 45; j++) {
+                        fireworks.push(new FireworkParticle(fx, fy, mainColor));
+                    }
+                }, i * 250);
+            }
+        }
+
+        class FloatingIcon {
+            constructor(emoji, forcedX, forcedY) {
+                this.emoji = emoji;
+                this.x = forcedX;
+                this.y = forcedY;
+                this.size = Math.random() * 8 + 26;
+                this.speedX = (Math.random() * 0.4 - 0.2);
+                this.speedY = (Math.random() * 0.4 - 0.2);
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.opacitySpeed = (Math.random() * 0.005 + 0.0015);
+                this.fadeDirection = Math.random() > 0.5 ? 1 : -1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < 30 || this.x > canvas.width - 30) this.speedX *= -1;
+                if (this.y < 30 || this.y > canvas.height - 30) this.speedY *= -1;
+
+                this.opacity += this.opacitySpeed * this.fadeDirection;
+                if (this.opacity >= 0.9) {
+                    this.opacity = 0.9;
+                    this.fadeDirection = -1;
+                } else if (this.opacity <= 0.1) {
+                    this.opacity = 0.1;
+                    this.fadeDirection = 1;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.font = `${this.size}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.emoji, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 100; i++) particles.push(new Particle());
+
+        const emojisList = ['🎹', '🎤', '👑', '🔥'];
+        emojisList.forEach((emoji, index) => {
+            const cols = 2;
+            const rows = 2;
+            const c = index % cols;
+            const r = Math.floor(index / cols);
+            
+            const cellWidth = canvas.width / cols;
+            const cellHeight = canvas.height / rows;
+            
+            const margin = 100;
+            const fx = c * cellWidth + margin + Math.random() * (cellWidth - margin * 2);
+            const fy = r * cellHeight + margin + Math.random() * (cellHeight - margin * 2);
+
+            icons.push(new FloatingIcon(emoji, fx, fy));
+        });
+
+        setTimeout(launchFireworks, 150);
+
+        function triggerGoldGlitchEffect() {
+            const el = document.getElementById('liuRauliEl');
+            if (!el) return;
+
+            el.classList.remove('glitch-gold-active');
+            void el.offsetWidth;
+            el.classList.add('glitch-gold-active');
+
+            const rect = el.getBoundingClientRect();
+            const containerContainer = el.parentElement;
+
+            for (let i = 0; i < 16; i++) {
+                const particle = document.createElement('span');
+                particle.className = 'gold-particle';
+                
+                const startX = rect.width / 2 + (Math.random() * 40 - 20);
+                const startY = rect.height / 2 + (Math.random() * 20 - 10);
+                particle.style.left = startX + 'px';
+                particle.style.top = startY + 'px';
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 70 + 20;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+
+                particle.style.setProperty('--dx', dx + 'px');
+                particle.style.setProperty('--dy', dy + 'px');
+
+                containerContainer.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+        }
+
+        setTimeout(() => {
+            triggerGoldGlitchEffect();
+            setInterval(triggerGoldGlitchEffect, 10000);
+        }, 3000);
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                fireworks[i].update();
+                fireworks[i].draw();
+                if (fireworks[i].alpha <= 0) {
+                    fireworks.splice(i, 1);
+                }
+            }
+
+            icons.forEach(icon => { icon.update(); icon.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
